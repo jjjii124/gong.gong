@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>공공 - 학생 전용 공부자료 거래 플랫폼</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ---------------------------------------------------------------
+   아이콘 (lucide-react 대신 인라인 SVG로 동일한 아이콘 구현)
+--------------------------------------------------------------- */
+const Icon = ({ children, size = 24, fill = "none", stroke = "currentColor", strokeWidth = 2, style, ...rest }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style} {...rest}>
+    {children}
+  </svg>
+);
+const Home = (props) => <Icon {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></Icon>;
+const BookOpen = (props) => <Icon {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></Icon>;
+const MessageSquare = (props) => <Icon {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Icon>;
+const HelpCircle = (props) => <Icon {...props}><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4" /><line x1="12" y1="17" x2="12.01" y2="17" /></Icon>;
+const User = (props) => <Icon {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></Icon>;
+const Search = (props) => <Icon {...props}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></Icon>;
+const Heart = (props) => <Icon {...props}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" /></Icon>;
+const Star = (props) => <Icon {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></Icon>;
+const Upload = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></Icon>;
+const LogOut = (props) => <Icon {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></Icon>;
+const Shield = (props) => <Icon {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></Icon>;
+const TrendingUp = (props) => <Icon {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></Icon>;
+const Flag = (props) => <Icon {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></Icon>;
+const X = (props) => <Icon {...props}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></Icon>;
+const ChevronRight = (props) => <Icon {...props}><polyline points="9 18 15 12 9 6" /></Icon>;
+const Trash2 = (props) => <Icon {...props}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></Icon>;
+const CheckCircle = (props) => <Icon {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></Icon>;
+const Coins = (props) => <Icon {...props}><circle cx="8" cy="8" r="6" /><path d="M18.09 10.37A6 6 0 1 1 10.34 18" /><path d="M7 6h1v4" /><path d="M16.71 13.88l.7.71-2.82 2.82" /></Icon>;
+const Download = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></Icon>;
+const PlusCircle = (props) => <Icon {...props}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></Icon>;
+const Megaphone = (props) => <Icon {...props}><path d="M3 11l18-5v12L3 13v-2z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></Icon>;
+const FileText = (props) => <Icon {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="8" y1="13" x2="16" y2="13" /><line x1="8" y1="17" x2="16" y2="17" /></Icon>;
+const ImageIcon = (props) => <Icon {...props}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></Icon>;
+const Send = (props) => <Icon {...props}><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></Icon>;
+
+/* ---------------------------------------------------------------
+   상수
+--------------------------------------------------------------- */
+const SUBJECTS = ["국어", "영어", "수학", "사회", "과학", "한국사", "기타"];
+const GRADES = ["고1", "고2", "고3"];
+const FREE_CATS = ["공부", "대학", "일상", "질문", "고교학점제"];
+const REPORT_REASONS = ["저작권", "광고", "욕설", "중복 자료"];
+const DB_KEY = "gonggong_db_v1";
+const SESSION_KEY = "gonggong_session_v1";
+
+const COLORS = {
+  primary: "#3D5AFE",
+  primaryDark: "#2A3EB1",
+  secondary: "#00BFA5",
+  accent: "#FF6584",
+  bg: "#F6F7FB",
+  surface: "#FFFFFF",
+  text: "#1A1D29",
+  muted: "#7A7F91",
+  border: "#E7E9F2",
+};
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const localDateStr = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  const tzOffset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+};
+const todayStr = () => localDateStr(new Date());
+const fmtDate = (d) => new Date(d).toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+function sellerTier(totalSales) {
+  if (totalSales >= 50) return { name: "플래티넘", color: "#7C4DFF" };
+  if (totalSales >= 20) return { name: "골드", color: "#FFB300" };
+  if (totalSales >= 5) return { name: "실버", color: "#90A4AE" };
+  return { name: "브론즈", color: "#B8794E" };
+}
+
+function emptyDB() {
+  return {
+    users: {
+      admin: {
+        id: "admin", pw: "admin1234", school: "관리자", grade: "-", cls: "-",
+        name: "관리자", nickname: "운영자", role: "admin", points: 0, banned: false,
+        joined: todayStr(), following: [], followers: [],
+        attendance: { dates: [], streak: 0, lastDate: null },
+        sellerStats: { today: 0, month: 0, total: 0, totalEarned: 0, lastResetDay: todayStr() },
+      },
+    },
+    materials: [],
+    posts: [],
+    pointHistory: [],
+    notices: [
+      { id: uid(), title: "공공 서비스를 시작합니다 🎉", content: "가입하면 1000P를 드려요. 자료를 올리고, 사고, 팔로우하며 함께 공부해요!", date: todayStr() },
+    ],
+    reports: [],
+  };
+}
+
+/* ---------------------------------------------------------------
+   저장소 헬퍼
+--------------------------------------------------------------- */
+async function loadDB() {
+  try {
+    const r = await window.storage.get(DB_KEY, true);
+    if (!r) throw new Error("empty");
+    const parsed = JSON.parse(r.value);
+    if (!parsed.users || !parsed.users.admin) {
+      parsed.users = { ...(parsed.users || {}), admin: emptyDB().users.admin };
+    }
+    return parsed;
+  } catch (e) {
+    const fresh = emptyDB();
+    try { await window.storage.set(DB_KEY, JSON.stringify(fresh), true); } catch (_) {}
+    return fresh;
+  }
+}
+async function persistDB(db) {
+  try { await window.storage.set(DB_KEY, JSON.stringify(db), true); } catch (e) { console.error(e); }
+}
+async function saveFile(id, dataUrl) {
+  try { await window.storage.set(`gg_file_${id}`, dataUrl, true); } catch (e) { console.error(e); }
+}
+async function loadFile(id) {
+  try {
+    const r = await window.storage.get(`gg_file_${id}`, true);
+    return r ? r.value : null;
+  } catch (e) { return null; }
+}
+
+/* ---------------------------------------------------------------
+   작은 UI 컴포넌트
+--------------------------------------------------------------- */
+function Badge({ children, color }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700,
+      padding: "2px 8px", borderRadius: 999, color: "#fff", background: color,
+    }}>{children}</span>
+  );
+}
+function PointTag({ price }) {
+  if (price === 0) return <Badge color={COLORS.secondary}>무료</Badge>;
+  return <Badge color={COLORS.primary}>{price.toLocaleString()}P</Badge>;
+}
+function Stars({ value, size = 14 }) {
+  return (
+    <span style={{ display: "inline-flex", gap: 1 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} size={size} fill={i <= Math.round(value) ? "#FFB300" : "none"} stroke="#FFB300" />
+      ))}
+    </span>
+  );
+}
+function Modal({ title, onClose, children, width = 480 }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(26,29,41,0.45)", zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+    }} onClick={onClose}>
+      <div style={{
+        background: COLORS.surface, borderRadius: 16, width: "100%", maxWidth: width,
+        maxHeight: "88vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "16px 20px", borderBottom: `1px solid ${COLORS.border}`, position: "sticky", top: 0, background: COLORS.surface, borderRadius: "16px 16px 0 0",
+        }}>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>{title}</h3>
+          <button onClick={onClose} className="gg-icon-btn"><X size={18} /></button>
+        </div>
+        <div style={{ padding: 20 }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+function Field({ label, children }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 6, color: COLORS.text }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+function Toast({ msg, onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 2200); return () => clearTimeout(t); }, [msg]);
+  if (!msg) return null;
+  return (
+    <div style={{
+      position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 200,
+      background: COLORS.text, color: "#fff", padding: "10px 18px", borderRadius: 999,
+      fontSize: 13, fontWeight: 600, boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+    }}>{msg}</div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   메인 앱
+--------------------------------------------------------------- */
+function App() {
+  const [db, setDb] = useState(null);
+  const [me, setMe] = useState(null); // userId
+  const [view, setView] = useState("home");
+  const [authMode, setAuthMode] = useState("login");
+  const [toast, setToast] = useState("");
+  const [detailMaterial, setDetailMaterial] = useState(null);
+  const [detailPost, setDetailPost] = useState(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(null); // board type
+  const [showReport, setShowReport] = useState(null); // {type, id}
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFilters, setSearchFilters] = useState({ subject: "", grade: "", school: "", free: false, sort: "popular" });
+  const [freeCat, setFreeCat] = useState("전체");
+  const dbRef = useRef(null);
+
+  const notify = (m) => setToast(m);
+
+  useEffect(() => {
+    (async () => {
+      const d = await loadDB();
+      setDb(d); dbRef.current = d;
+      const s = await (async () => { try { const r = await window.storage.get(SESSION_KEY, false); return r ? JSON.parse(r.value) : null; } catch (e) { return null; } })();
+      if (s && d.users[s.userId] && !d.users[s.userId].banned) setMe(s.userId);
+    })();
+    const refresh = async () => {
+      const fresh = await loadDB();
+      dbRef.current = fresh;
+      setDb(fresh);
+    };
+    const interval = setInterval(refresh, 3000);
+    const onFocus = () => { if (document.visibilityState === "visible") refresh(); };
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (db) { dbRef.current = db; }
+  }, [db]);
+
+  const mutate = useCallback(async (fn) => {
+    // 저장 직전에 항상 최신 데이터를 다시 불러와 다른 사용자(관리자 포함)의
+    // 변경사항을 덮어쓰지 않도록 한다.
+    const fresh = await loadDB();
+    fn(fresh);
+    dbRef.current = fresh;
+    setDb(fresh);
+    await persistDB(fresh);
+  }, []);
+
+  const setSession = async (userId) => {
+    const fresh = await loadDB();
+    dbRef.current = fresh;
+    setDb(fresh);
+    setMe(userId);
+    try { await window.storage.set(SESSION_KEY, JSON.stringify({ userId }), false); } catch (e) {}
+  };
+  const logout = async () => {
+    setMe(null); setView("home");
+    try { await window.storage.delete(SESSION_KEY, false); } catch (e) {}
+  };
+
+  if (!db) {
+    return <div style={{ padding: 60, textAlign: "center", color: COLORS.muted, fontFamily: FONT }}>불러오는 중...</div>;
+  }
+
+  const user = me ? db.users[me] : null;
+  const isAdmin = user && user.role === "admin";
+
+  /* ---------- 포인트/알림 유틸 ---------- */
+  const addPoints = (d, userId, amount, desc) => {
+    const u = d.users[userId];
+    if (!u) return;
+    u.points += amount;
+    d.pointHistory.push({ id: uid(), userId, type: amount >= 0 ? "적립" : "사용", amount, desc, date: new Date().toISOString() });
+  };
+
+  /* ---------- 인증 ---------- */
+  const doSignup = async (form) => {
+    if (!form.id || !form.pw || !form.nickname || !form.name) { notify("모든 항목을 입력해주세요."); return; }
+    if (db.users[form.id]) { notify("이미 사용 중인 아이디입니다."); return; }
+    if (Object.values(db.users).some((u) => u.nickname === form.nickname)) { notify("이미 사용 중인 닉네임입니다."); return; }
+    await mutate((d) => {
+      d.users[form.id] = {
+        id: form.id, pw: form.pw, school: form.school, grade: form.grade, cls: form.cls,
+        name: form.name, nickname: form.nickname, role: "user", points: 0, banned: false,
+        joined: todayStr(), following: [], followers: [],
+        attendance: { dates: [], streak: 0, lastDate: null },
+        sellerStats: { today: 0, month: 0, total: 0, totalEarned: 0, lastResetDay: todayStr() },
+      };
+      addPoints(d, form.id, 1000, "회원가입 축하 포인트");
+    });
+    notify("가입 완료! 1000P가 지급되었습니다 🎁");
+    await setSession(form.id);
+    setView("home");
+  };
+  const doLogin = async (id, pw) => {
+    const u = db.users[id];
+    if (!u || u.pw !== pw) { notify("아이디 또는 비밀번호가 올바르지 않습니다."); return; }
+    if (u.banned) { notify("정지된 계정입니다. 관리자에게 문의하세요."); return; }
+    await setSession(id);
+    setView("home");
+    notify(`${u.nickname}님, 환영합니다!`);
+  };
+
+  /* ---------- 출석체크 ---------- */
+  const doAttendance = async () => {
+    if (!me) return;
+    const t = todayStr();
+    if (user.attendance.dates.includes(t)) { notify("오늘은 이미 출석했어요."); return; }
+    await mutate((d) => {
+      const u = d.users[me];
+      const yest = localDateStr(new Date(Date.now() - 86400000));
+      u.attendance.streak = u.attendance.lastDate === yest ? u.attendance.streak + 1 : 1;
+      u.attendance.dates.push(t);
+      u.attendance.lastDate = t;
+      addPoints(d, me, 20, "출석 체크");
+      if (u.attendance.streak === 7) addPoints(d, me, 100, "7일 연속 출석 보너스");
+      if (u.attendance.streak === 30) addPoints(d, me, 500, "30일 연속 출석 보너스");
+    });
+    notify("출석 완료! +20P 🔥");
+  };
+
+  /* ---------- 자료 업로드/구매 ---------- */
+  const doUpload = async (form, file) => {
+    if (!form.title || !form.subject || !form.grade) { notify("필수 항목을 입력해주세요."); return; }
+    const id = uid();
+    if (file) {
+      const dataUrl = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
+      await saveFile(id, dataUrl);
+    }
+    await mutate((d) => {
+      d.materials.push({
+        id, sellerId: me, title: form.title, desc: form.desc, subject: form.subject,
+        grade: form.grade, price: Number(form.price) || 0, fileType: file ? file.type : "",
+        hasFile: !!file, createdAt: new Date().toISOString(),
+        purchasedBy: [], favoritedBy: [], reviews: [], questions: [], reports: [],
+      });
+    });
+    setShowUpload(false);
+    notify("자료가 등록되었습니다!");
+  };
+  const doDeleteMaterial = async (matId) => {
+    await mutate((d) => { d.materials = d.materials.filter((m) => m.id !== matId); });
+    setDetailMaterial(null);
+    notify("자료를 삭제했습니다.");
+  };
+  const doPurchase = async (mat) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    if (mat.sellerId === me) { notify("본인 자료는 구매할 수 없어요."); return; }
+    if (mat.purchasedBy.includes(me)) { notify("이미 구매한 자료예요."); return; }
+    if (user.points < mat.price) { notify("포인트가 부족합니다."); return; }
+    await mutate((d) => {
+      const m = d.materials.find((x) => x.id === mat.id);
+      m.purchasedBy.push(me);
+      const seller = d.users[m.sellerId];
+      const t = todayStr();
+      if (seller.sellerStats.lastResetDay !== t) { seller.sellerStats.today = 0; seller.sellerStats.lastResetDay = t; }
+      seller.sellerStats.today += 1; seller.sellerStats.month += 1; seller.sellerStats.total += 1;
+      seller.sellerStats.totalEarned += m.price;
+      if (m.price > 0) {
+        addPoints(d, me, -m.price, `자료 구매 - ${m.title}`);
+        addPoints(d, m.sellerId, m.price, `자료 판매 - ${m.title}`);
+      } else {
+        d.pointHistory.push({ id: uid(), userId: me, type: "구매", amount: 0, desc: `무료 자료 다운로드 - ${m.title}`, date: new Date().toISOString() });
+      }
+    });
+    notify("구매 완료! 마이페이지에서 확인하세요.");
+  };
+  const doFavorite = async (matId) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    await mutate((d) => {
+      const m = d.materials.find((x) => x.id === matId);
+      const i = m.favoritedBy.indexOf(me);
+      if (i >= 0) m.favoritedBy.splice(i, 1); else m.favoritedBy.push(me);
+    });
+  };
+  const doFollow = async (sellerId) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    if (sellerId === me) return;
+    await mutate((d) => {
+      const u = d.users[me]; const s = d.users[sellerId];
+      const i = u.following.indexOf(sellerId);
+      if (i >= 0) { u.following.splice(i, 1); s.followers = s.followers.filter((x) => x !== me); }
+      else { u.following.push(sellerId); s.followers.push(me); }
+    });
+  };
+  const doReview = async (matId, rating, text) => {
+    await mutate((d) => {
+      const m = d.materials.find((x) => x.id === matId);
+      m.reviews = m.reviews.filter((r) => r.userId !== me);
+      m.reviews.push({ userId: me, rating, text, date: new Date().toISOString() });
+    });
+    notify("후기가 등록되었습니다.");
+  };
+  const doAsk = async (matId, text) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    await mutate((d) => {
+      const m = d.materials.find((x) => x.id === matId);
+      m.questions.push({ id: uid(), userId: me, text, answer: "", date: new Date().toISOString() });
+    });
+  };
+  const doAnswer = async (matId, qid, answer) => {
+    await mutate((d) => {
+      const m = d.materials.find((x) => x.id === matId);
+      const q = m.questions.find((x) => x.id === qid);
+      q.answer = answer;
+    });
+  };
+
+  /* ---------- 게시판 ---------- */
+  const doCreatePost = async (board, form) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    if (!form.title || !form.content) { notify("제목과 내용을 입력해주세요."); return; }
+    await mutate((d) => {
+      const post = {
+        id: uid(), board, category: form.category || "",
+        authorId: me, title: form.title, content: form.content, comments: [], date: new Date().toISOString(), reports: [],
+      };
+      d.posts.push(post);
+    });
+    setShowPostForm(null);
+    notify("게시글이 등록되었습니다.");
+  };
+  const doComment = async (postId, content) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    await mutate((d) => {
+      const p = d.posts.find((x) => x.id === postId);
+      p.comments.push({ id: uid(), authorId: me, content, date: new Date().toISOString() });
+    });
+  };
+  const doDeletePost = async (postId) => {
+    await mutate((d) => { d.posts = d.posts.filter((p) => p.id !== postId); });
+    setDetailPost(null);
+    notify("게시글을 삭제했습니다.");
+  };
+
+  /* ---------- 신고 ---------- */
+  const doReport = async (target, reason) => {
+    if (!me) { notify("로그인이 필요합니다."); return; }
+    await mutate((d) => {
+      d.reports.push({ id: uid(), type: target.type, targetId: target.id, reporterId: me, reason, date: new Date().toISOString(), status: "대기" });
+    });
+    setShowReport(null);
+    notify("신고가 접수되었습니다.");
+  };
+  const resolveReport = async (rid, status) => {
+    await mutate((d) => { d.reports.find((r) => r.id === rid).status = status; });
+  };
+
+  /* ---------- 관리자 ---------- */
+  const adminBan = async (userId, banned) => {
+    await mutate((d) => { d.users[userId].banned = banned; });
+    notify(banned ? "계정을 정지했습니다." : "정지를 해제했습니다.");
+  };
+  const adminGrant = async (userId, amount, reason) => {
+    if (!amount) return;
+    await mutate((d) => { addPoints(d, userId, Number(amount), reason || "관리자 지급"); });
+    notify("포인트를 지급했습니다.");
+  };
+  const adminAddNotice = async (title, content) => {
+    await mutate((d) => { d.notices.unshift({ id: uid(), title, content, date: todayStr() }); });
+    notify("공지를 등록했습니다.");
+  };
+  const adminDeleteNotice = async (id) => {
+    await mutate((d) => { d.notices = d.notices.filter((n) => n.id !== id); });
+  };
+
+  /* ---------------------------------------------------------------
+     렌더링
+  --------------------------------------------------------------- */
+  if (!me) {
+    return (
+      <Shell>
+        <AuthScreen mode={authMode} setMode={setAuthMode} onLogin={doLogin} onSignup={doSignup} db={db} />
+        <Toast msg={toast} onDone={() => setToast("")} />
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell>
+      <TopBar
+        user={user} isAdmin={isAdmin} view={view} setView={setView}
+        onLogout={logout} onSearch={(q) => { setSearchQuery(q); setView("search"); }}
+      />
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 16px 80px" }}>
+        {view === "home" && (
+          <HomeView
+            db={db} user={user} onAttend={doAttendance} onOpenMat={setDetailMaterial}
+            setView={setView}
+          />
+        )}
+        {view === "materials" && (
+          <MaterialsView
+            db={db} me={me} onOpenMat={setDetailMaterial} onUpload={() => setShowUpload(true)}
+          />
+        )}
+        {view === "search" && (
+          <SearchView db={db} query={searchQuery} setQuery={setSearchQuery}
+            filters={searchFilters} setFilters={setSearchFilters} onOpenMat={setDetailMaterial} />
+        )}
+        {view === "free" && (
+          <BoardView
+            title="자유게시판" cats={["전체", ...FREE_CATS]} cat={freeCat} setCat={setFreeCat}
+            posts={db.posts.filter((p) => p.board === "free" && (freeCat === "전체" || p.category === freeCat))}
+            db={db} me={me} onOpen={setDetailPost} onNew={() => setShowPostForm("free")}
+          />
+        )}
+        {view === "qna" && (
+          <BoardView
+            title="질문게시판" cats={null}
+            posts={db.posts.filter((p) => p.board === "qna")}
+            db={db} me={me} onOpen={setDetailPost} onNew={() => setShowPostForm("qna")}
+          />
+        )}
+        {view === "notices" && <NoticesView db={db} />}
+        {view === "points" && <PointsView db={db} user={user} />}
+        {view === "mypage" && (
+          <MyPage
+            db={db} me={me} user={user} onOpenMat={setDetailMaterial} onOpenPost={setDetailPost}
+            onDeleteMat={doDeleteMaterial} onAttend={doAttendance}
+          />
+        )}
+        {view === "admin" && isAdmin && (
+          <AdminView db={db} onBan={adminBan} onGrant={adminGrant}
+            onAddNotice={adminAddNotice} onDeleteNotice={adminDeleteNotice}
+            onDeleteMat={doDeleteMaterial} onDeletePost={doDeletePost} onResolveReport={resolveReport} />
+        )}
+      </div>
+
+      {detailMaterial && (
+        <MaterialModal
+          mat={db.materials.find((m) => m.id === detailMaterial.id) || detailMaterial}
+          db={db} me={me} isAdmin={isAdmin}
+          onClose={() => setDetailMaterial(null)}
+          onBuy={doPurchase} onFav={doFavorite} onFollow={doFollow}
+          onReview={doReview} onAsk={doAsk} onAnswer={doAnswer}
+          onDelete={doDeleteMaterial} onReport={() => setShowReport({ type: "자료", id: detailMaterial.id })}
+        />
+      )}
+      {detailPost && (
+        <PostModal
+          post={db.posts.find((p) => p.id === detailPost.id) || detailPost}
+          db={db} me={me} isAdmin={isAdmin}
+          onClose={() => setDetailPost(null)} onComment={doComment}
+          onDelete={doDeletePost} onReport={() => setShowReport({ type: "게시글", id: detailPost.id })}
+        />
+      )}
+      {showUpload && (
+        <UploadModal onClose={() => setShowUpload(false)} onSubmit={doUpload} />
+      )}
+      {showPostForm && (
+        <PostFormModal board={showPostForm} db={db} user={user}
+          onClose={() => setShowPostForm(null)} onSubmit={(f) => doCreatePost(showPostForm, f)} />
+      )}
+      {showReport && (
+        <Modal title="신고하기" onClose={() => setShowReport(null)} width={360}>
+          <p style={{ fontSize: 13, color: COLORS.muted, marginTop: 0 }}>신고 사유를 선택해주세요. 관리자가 확인 후 처리합니다.</p>
+          {REPORT_REASONS.map((r) => (
+            <button key={r} className="gg-btn-outline" style={{ width: "100%", marginBottom: 8, justifyContent: "flex-start" }}
+              onClick={() => doReport(showReport, r)}>{r}</button>
+          ))}
+        </Modal>
+      )}
+      <Toast msg={toast} onDone={() => setToast("")} />
+      <GlobalStyle />
+    </Shell>
+  );
+}
+
+const FONT = "'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+
+function Shell({ children }) {
+  useEffect(() => {
+    if (!document.getElementById("gg-pretendard")) {
+      const link = document.createElement("link");
+      link.id = "gg-pretendard";
+      link.rel = "stylesheet";
+      link.href = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css";
+      document.head.appendChild(link);
+    }
+  }, []);
+  return (
+    <div style={{ fontFamily: FONT, background: COLORS.bg, minHeight: "100vh", color: COLORS.text }}>
+      {children}
+    </div>
+  );
+}
+
+function GlobalStyle() {
+  return (
+    <style>{`
+      * { box-sizing: border-box; }
+      button { font-family: inherit; cursor: pointer; }
+      input, select, textarea { font-family: inherit; }
+      .gg-btn {
+        background: ${COLORS.primary}; color: #fff; border: none; border-radius: 10px;
+        padding: 10px 18px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;
+        transition: background .15s;
+      }
+      .gg-btn:hover { background: ${COLORS.primaryDark}; }
+      .gg-btn:disabled { background: #C9CCDA; cursor: not-allowed; }
+      .gg-btn-secondary { background: ${COLORS.secondary}; }
+      .gg-btn-secondary:hover { background: #009985; }
+      .gg-btn-accent { background: ${COLORS.accent}; }
+      .gg-btn-outline {
+        background: #fff; color: ${COLORS.text}; border: 1.5px solid ${COLORS.border}; border-radius: 10px;
+        padding: 9px 16px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;
+      }
+      .gg-btn-outline:hover { border-color: ${COLORS.primary}; color: ${COLORS.primary}; }
+      .gg-icon-btn { background: none; border: none; padding: 6px; border-radius: 8px; display: flex; color: ${COLORS.muted}; }
+      .gg-icon-btn:hover { background: ${COLORS.bg}; color: ${COLORS.text}; }
+      .gg-input {
+        width: 100%; border: 1.5px solid ${COLORS.border}; border-radius: 10px; padding: 10px 12px;
+        font-size: 14px; outline: none; background: #fff;
+      }
+      .gg-input:focus { border-color: ${COLORS.primary}; }
+      .gg-card {
+        background: ${COLORS.surface}; border: 1px solid ${COLORS.border}; border-radius: 14px;
+        padding: 16px; transition: box-shadow .15s, transform .15s;
+      }
+      .gg-card:hover { box-shadow: 0 8px 24px rgba(61,90,254,0.10); transform: translateY(-2px); }
+      .gg-nav-item {
+        display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px;
+        color: ${COLORS.muted}; background: none; border: none; padding: 6px 4px; border-radius: 10px; font-weight: 600;
+      }
+      .gg-nav-item.active { color: ${COLORS.primary}; }
+      .gg-tab { padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1.5px solid ${COLORS.border}; background: #fff; color: ${COLORS.muted}; }
+      .gg-tab.active { background: ${COLORS.primary}; color: #fff; border-color: ${COLORS.primary}; }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-thumb { background: #D8DBEA; border-radius: 8px; }
+    `}</style>
+  );
+}
+
+/* ---------------------------------------------------------------
+   인증 화면
+--------------------------------------------------------------- */
+function AuthScreen({ mode, setMode, onLogin, onSignup, db }) {
+  const [id, setId] = useState(""); const [pw, setPw] = useState("");
+  const [form, setForm] = useState({ school: "", grade: "고1", cls: "", name: "", nickname: "", id: "", pw: "" });
+  const idTaken = !!(form.id && db.users[form.id]);
+  const nicknameTaken = !!(form.nickname && Object.values(db.users).some((u) => u.nickname === form.nickname));
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 20, background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
+            display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", boxShadow: "0 10px 24px rgba(61,90,254,0.3)",
+          }}>
+            <BookOpen color="#fff" size={30} />
+          </div>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, letterSpacing: -0.5 }}>공공</h1>
+          <p style={{ margin: "6px 0 0", color: COLORS.muted, fontSize: 13 }}>학생 전용 공부자료 · 대입자료 거래 플랫폼</p>
+        </div>
+        <div className="gg-card" style={{ padding: 24 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            <button className={`gg-tab ${mode === "login" ? "active" : ""}`} style={{ flex: 1 }} onClick={() => setMode("login")}>로그인</button>
+            <button className={`gg-tab ${mode === "signup" ? "active" : ""}`} style={{ flex: 1 }} onClick={() => setMode("signup")}>회원가입</button>
+          </div>
+          {mode === "login" ? (
+            <div>
+              <Field label="아이디"><input className="gg-input" value={id} onChange={(e) => setId(e.target.value)} placeholder="아이디" /></Field>
+              <Field label="비밀번호"><input className="gg-input" type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="비밀번호" /></Field>
+              <button className="gg-btn" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} onClick={() => onLogin(id, pw)}>로그인</button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <Field label="학교"><input className="gg-input" value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} placeholder="○○고등학교" /></Field>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <Field label="학년">
+                    <select className="gg-input" value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })}>
+                      {GRADES.map((g) => <option key={g}>{g}</option>)}
+                    </select>
+                  </Field>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Field label="반"><input className="gg-input" value={form.cls} onChange={(e) => setForm({ ...form, cls: e.target.value })} placeholder="예: 3" /></Field>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}><Field label="이름"><input className="gg-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field></div>
+                <div style={{ flex: 1 }}>
+                  <Field label="닉네임">
+                    <input className="gg-input" style={nicknameTaken ? { borderColor: COLORS.accent } : {}} value={form.nickname} onChange={(e) => setForm({ ...form, nickname: e.target.value })} />
+                  </Field>
+                  {nicknameTaken && <div style={{ fontSize: 11.5, color: COLORS.accent, marginTop: -10, marginBottom: 10 }}>이미 사용 중인 닉네임입니다.</div>}
+                </div>
+              </div>
+              <Field label="아이디">
+                <input className="gg-input" style={idTaken ? { borderColor: COLORS.accent } : {}} value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })} />
+              </Field>
+              {idTaken && <div style={{ fontSize: 11.5, color: COLORS.accent, marginTop: -10, marginBottom: 10 }}>이미 사용 중인 아이디입니다.</div>}
+              <Field label="비밀번호"><input className="gg-input" type="password" value={form.pw} onChange={(e) => setForm({ ...form, pw: e.target.value })} /></Field>
+              <button className="gg-btn gg-btn-secondary" disabled={idTaken || nicknameTaken} style={{ width: "100%", justifyContent: "center", marginTop: 6 }} onClick={() => onSignup(form)}>
+                가입하고 1000P 받기 🎁
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   상단 네비게이션
+--------------------------------------------------------------- */
+function TopBar({ user, isAdmin, view, setView, onLogout, onSearch }) {
+  const [q, setQ] = useState("");
+  const items = [
+    { key: "home", label: "홈", icon: Home },
+    { key: "materials", label: "자료공유", icon: BookOpen },
+    { key: "free", label: "자유게시판", icon: MessageSquare },
+    { key: "qna", label: "질문게시판", icon: HelpCircle },
+    { key: "notices", label: "공지사항", icon: Megaphone },
+    { key: "points", label: "포인트기록", icon: Coins },
+    { key: "mypage", label: "마이페이지", icon: User },
+  ];
+  if (isAdmin) items.push({ key: "admin", label: "관리자", icon: Shield });
+  return (
+    <div style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, position: "sticky", top: 0, zIndex: 40 }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 16px", display: "flex", alignItems: "center", gap: 16 }}>
+        <div onClick={() => setView("home")} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 9, background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <BookOpen color="#fff" size={17} />
+          </div>
+          <span style={{ fontWeight: 900, fontSize: 18 }}>공공</span>
+        </div>
+        <div style={{ flex: 1, position: "relative", maxWidth: 380 }}>
+          <Search size={15} style={{ position: "absolute", left: 12, top: 10, color: COLORS.muted }} />
+          <input className="gg-input" style={{ paddingLeft: 34 }} placeholder="자료, 과목 검색"
+            value={q} onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onSearch(q)} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, background: COLORS.bg, padding: "6px 12px", borderRadius: 999, fontWeight: 800, fontSize: 13, color: COLORS.primary }}>
+            <Coins size={14} /> {user.points.toLocaleString()}P
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{user.nickname}{isAdmin ? " 👑" : ""}</span>
+          <button className="gg-icon-btn" onClick={onLogout} title="로그아웃"><LogOut size={17} /></button>
+        </div>
+      </div>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 16px 8px", display: "flex", gap: 4, overflowX: "auto" }}>
+        {items.map((it) => (
+          <button key={it.key} className={`gg-nav-item ${view === it.key ? "active" : ""}`} onClick={() => setView(it.key)} style={{ minWidth: 62 }}>
+            <it.icon size={18} /> {it.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   홈
+--------------------------------------------------------------- */
+function HomeView({ db, user, onAttend, onOpenMat, setView }) {
+  const checkedToday = user.attendance.dates.includes(todayStr());
+  const popular = [...db.materials].sort((a, b) => b.purchasedBy.length - a.purchasedBy.length).slice(0, 4);
+  return (
+    <div>
+      {db.notices[0] && (
+        <div className="gg-card" style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, background: "#EEF1FF", border: "none", cursor: "pointer" }} onClick={() => setView("notices")}>
+          <Megaphone size={20} color={COLORS.primary} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 14 }}>{db.notices[0].title}</div>
+            <div style={{ fontSize: 12.5, color: COLORS.muted, marginTop: 2 }}>{db.notices[0].content}</div>
+          </div>
+          <ChevronRight size={16} color={COLORS.muted} />
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <div className="gg-card" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, #6C7BFF)`, color: "#fff", border: "none" }}>
+          <div style={{ fontSize: 13, opacity: 0.9, fontWeight: 700 }}>보유 포인트</div>
+          <div style={{ fontSize: 26, fontWeight: 900, marginTop: 4 }}>{user.points.toLocaleString()}P</div>
+        </div>
+        <div className="gg-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.muted }}>오늘의 출석 🔥 연속 {user.attendance.streak}일</div>
+          <button className="gg-btn gg-btn-secondary" disabled={checkedToday} style={{ marginTop: 8, justifyContent: "center" }} onClick={onAttend}>
+            {checkedToday ? "출석 완료 ✓" : "출석하고 +20P"}
+          </button>
+        </div>
+      </div>
+      <QuickNav setView={setView} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "24px 0 12px" }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}><TrendingUp size={18} color={COLORS.accent} /> 인기자료</h3>
+        <button className="gg-icon-btn" onClick={() => setView("materials")} style={{ fontSize: 12, display: "flex", alignItems: "center" }}>더보기 <ChevronRight size={14} /></button>
+      </div>
+      {popular.length === 0 ? <EmptyState text="아직 등록된 자료가 없어요. 첫 자료를 올려보세요!" /> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 12 }}>
+          {popular.map((m) => <MaterialCard key={m.id} m={m} db={db} onClick={() => onOpenMat(m)} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+function QuickNav({ setView }) {
+  const items = [
+    { key: "materials", label: "자료공유", icon: BookOpen, color: COLORS.primary },
+    { key: "free", label: "자유게시판", icon: MessageSquare, color: COLORS.secondary },
+    { key: "qna", label: "질문게시판", icon: HelpCircle, color: COLORS.accent },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+      {items.map((it) => (
+        <button key={it.key} className="gg-card" style={{ textAlign: "center", border: `1px solid ${COLORS.border}` }} onClick={() => setView(it.key)}>
+          <it.icon size={20} color={it.color} />
+          <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6 }}>{it.label}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+function EmptyState({ text }) {
+  return <div style={{ textAlign: "center", padding: "40px 0", color: COLORS.muted, fontSize: 13.5 }}>{text}</div>;
+}
+
+/* ---------------------------------------------------------------
+   자료 카드 & 자료공유 뷰
+--------------------------------------------------------------- */
+function MaterialCard({ m, db, onClick }) {
+  const seller = db.users[m.sellerId];
+  const avg = m.reviews.length ? m.reviews.reduce((a, r) => a + r.rating, 0) / m.reviews.length : 0;
+  return (
+    <div className="gg-card" style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 8 }} onClick={onClick}>
+      <div style={{
+        height: 100, borderRadius: 10, background: `linear-gradient(135deg,#EEF1FF,#F6F7FB)`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {m.fileType.includes("pdf") ? <FileText size={30} color={COLORS.primary} /> : <ImageIcon size={30} color={COLORS.primary} />}
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <Badge color="#E7E9F2" style={{ color: COLORS.text }}><span style={{ color: COLORS.text }}>{m.subject}</span></Badge>
+        <PointTag price={m.price} />
+      </div>
+      <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.3 }}>{m.title}</div>
+      <div style={{ fontSize: 12, color: COLORS.muted, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>{seller ? seller.nickname : "탈퇴회원"} · {m.grade}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Heart size={12} fill={COLORS.accent} stroke={COLORS.accent} /> {m.favoritedBy.length}</span>
+      </div>
+      {m.reviews.length > 0 && <Stars value={avg} size={12} />}
+    </div>
+  );
+}
+function MaterialsView({ db, me, onOpenMat, onUpload }) {
+  const [subject, setSubject] = useState("전체");
+  const [grade, setGrade] = useState("전체");
+  const list = db.materials.filter((m) => (subject === "전체" || m.subject === subject) && (grade === "전체" || m.grade === grade))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 19, fontWeight: 900 }}>자료공유</h2>
+        <button className="gg-btn" onClick={onUpload}><Upload size={15} /> 자료 올리기</button>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <select className="gg-input" style={{ width: "auto" }} value={subject} onChange={(e) => setSubject(e.target.value)}>
+          {["전체", ...SUBJECTS].map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <select className="gg-input" style={{ width: "auto" }} value={grade} onChange={(e) => setGrade(e.target.value)}>
+          {["전체", ...GRADES].map((s) => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+      {list.length === 0 ? <EmptyState text="조건에 맞는 자료가 없어요." /> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 12 }}>
+          {list.map((m) => <MaterialCard key={m.id} m={m} db={db} onClick={() => onOpenMat(m)} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   검색
+--------------------------------------------------------------- */
+function SearchView({ db, query, setQuery, filters, setFilters, onOpenMat }) {
+  let list = db.materials.filter((m) => {
+    const q = query.trim().toLowerCase();
+    if (q && !(m.title.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q) || m.subject.includes(q))) return false;
+    if (filters.subject && m.subject !== filters.subject) return false;
+    if (filters.grade && m.grade !== filters.grade) return false;
+    if (filters.free && m.price !== 0) return false;
+    if (filters.school) { const s = db.users[m.sellerId]; if (!s || s.school !== filters.school) return false; }
+    return true;
+  });
+  if (filters.sort === "popular") list.sort((a, b) => b.purchasedBy.length - a.purchasedBy.length);
+  else list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 19, fontWeight: 900, marginTop: 0 }}>검색</h2>
+      <div style={{ position: "relative", marginBottom: 14 }}>
+        <Search size={16} style={{ position: "absolute", left: 14, top: 13, color: COLORS.muted }} />
+        <input className="gg-input" style={{ paddingLeft: 38 }} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="제목, 설명, 과목으로 검색" />
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
+        <select className="gg-input" style={{ width: "auto" }} value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
+          <option value="">과목 전체</option>{SUBJECTS.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <select className="gg-input" style={{ width: "auto" }} value={filters.grade} onChange={(e) => setFilters({ ...filters, grade: e.target.value })}>
+          <option value="">학년 전체</option>{GRADES.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <input className="gg-input" style={{ width: 140 }} placeholder="학교명" value={filters.school} onChange={(e) => setFilters({ ...filters, school: e.target.value })} />
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, padding: "0 6px" }}>
+          <input type="checkbox" checked={filters.free} onChange={(e) => setFilters({ ...filters, free: e.target.checked })} /> 무료만
+        </label>
+        <select className="gg-input" style={{ width: "auto" }} value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })}>
+          <option value="popular">인기순</option><option value="recent">최신순</option>
+        </select>
+      </div>
+      {list.length === 0 ? <EmptyState text="검색 결과가 없어요." /> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 12 }}>
+          {list.map((m) => <MaterialCard key={m.id} m={m} db={db} onClick={() => onOpenMat(m)} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   자료 상세 모달
+--------------------------------------------------------------- */
+function MaterialModal({ mat, db, me, isAdmin, onClose, onBuy, onFav, onFollow, onReview, onAsk, onAnswer, onDelete, onReport }) {
+  const [fileData, setFileData] = useState(null);
+  const [rating, setRating] = useState(5); const [reviewText, setReviewText] = useState("");
+  const [ask, setAsk] = useState("");
+  const [answerDraft, setAnswerDraft] = useState({});
+  const seller = db.users[mat.sellerId];
+  const owned = mat.purchasedBy.includes(me) || mat.sellerId === me;
+  const isMine = mat.sellerId === me;
+  const avg = mat.reviews.length ? mat.reviews.reduce((a, r) => a + r.rating, 0) / mat.reviews.length : 0;
+  const tier = seller ? sellerTier(seller.sellerStats.total) : null;
+
+  useEffect(() => { if (owned && mat.hasFile) loadFile(mat.id).then(setFileData); }, [owned, mat.id]);
+
+  return (
+    <Modal title={mat.title} onClose={onClose} width={560}>
+      <div style={{
+        height: 200, borderRadius: 12, background: "#F0F1F8", display: "flex", alignItems: "center",
+        justifyContent: "center", position: "relative", overflow: "hidden", marginBottom: 16,
+      }}>
+        {owned && fileData && mat.fileType.startsWith("image") ? (
+          <img src={fileData} alt="자료" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+        ) : owned && fileData && mat.fileType.includes("pdf") ? (
+          <div style={{ textAlign: "center" }}>
+            <FileText size={40} color={COLORS.primary} />
+            <div style={{ fontSize: 12, marginTop: 6, color: COLORS.muted }}>PDF 자료 · 구매 완료</div>
+            <a href={fileData} download={`${mat.title}.pdf`} className="gg-btn" style={{ marginTop: 8, fontSize: 12 }}><Download size={13} /> 다운로드</a>
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", color: COLORS.muted }}>
+            {mat.fileType.includes("pdf") ? <FileText size={36} /> : <ImageIcon size={36} />}
+            <div style={{ fontSize: 12, marginTop: 6 }}>{mat.fileType.includes("pdf") ? "PDF 첫 페이지만 공개 (미리보기 준비중)" : "구매 전 미리보기 (워터마크 적용)"}</div>
+          </div>
+        )}
+        {!owned && mat.hasFile && mat.fileType.startsWith("image") && (
+          <div style={{
+            position: "absolute", inset: 0, display: "flex", flexWrap: "wrap", alignContent: "space-around",
+            justifyContent: "space-around", pointerEvents: "none",
+          }}>
+            {Array(6).fill(0).map((_, i) => (
+              <span key={i} style={{ transform: "rotate(-25deg)", fontSize: 15, fontWeight: 900, color: "rgba(26,29,41,0.18)" }}>공공 PREVIEW</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+        <Badge color="#E7E9F2"><span style={{ color: COLORS.text }}>{mat.subject}</span></Badge>
+        <Badge color="#E7E9F2"><span style={{ color: COLORS.text }}>{mat.grade}</span></Badge>
+        <PointTag price={mat.price} />
+      </div>
+      <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.6 }}>{mat.desc}</p>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderTop: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}`, marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: "50%", background: COLORS.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13 }}>
+            {seller ? seller.nickname[0] : "?"}
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", gap: 5 }}>
+              {seller ? seller.nickname : "탈퇴회원"} {tier && <Badge color={tier.color}>{tier.name}</Badge>}
+            </div>
+            <div style={{ fontSize: 11, color: COLORS.muted }}>판매 {seller?.sellerStats.total || 0}건 · {mat.reviews.length > 0 ? <>평점 {avg.toFixed(1)}</> : "후기 없음"}</div>
+          </div>
+        </div>
+        {!isMine && (
+          <button className="gg-btn-outline" onClick={() => onFollow(mat.sellerId)}>
+            {db.users[me]?.following.includes(mat.sellerId) ? "팔로잉 ✓" : "+ 팔로우"}
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+        {isMine ? (
+          <>
+            <button className="gg-btn-outline" style={{ flex: 1, justifyContent: "center", color: COLORS.accent }} onClick={() => { if (confirm("자료를 삭제할까요?")) onDelete(mat.id); }}>
+              <Trash2 size={14} /> 삭제
+            </button>
+          </>
+        ) : owned ? (
+          <button className="gg-btn gg-btn-secondary" style={{ flex: 1, justifyContent: "center" }} disabled><CheckCircle size={15} /> 구매완료</button>
+        ) : (
+          <button className="gg-btn" style={{ flex: 1, justifyContent: "center" }} onClick={() => onBuy(mat)}>
+            {mat.price === 0 ? "무료로 받기" : `${mat.price.toLocaleString()}P로 구매`}
+          </button>
+        )}
+        <button className="gg-icon-btn" style={{ border: `1.5px solid ${COLORS.border}`, borderRadius: 10 }} onClick={() => onFav(mat.id)}>
+          <Heart size={18} fill={mat.favoritedBy.includes(me) ? COLORS.accent : "none"} stroke={COLORS.accent} />
+        </button>
+        <button className="gg-icon-btn" style={{ border: `1.5px solid ${COLORS.border}`, borderRadius: 10 }} onClick={onReport}><Flag size={16} /></button>
+      </div>
+
+      <h4 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 8px" }}>⭐ 후기 ({mat.reviews.length})</h4>
+      {mat.reviews.map((r, i) => (
+        <div key={i} style={{ padding: "8px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700 }}>{db.users[r.userId]?.nickname || "익명"}</span>
+            <Stars value={r.rating} />
+          </div>
+          <div style={{ fontSize: 13, marginTop: 2 }}>{r.text}</div>
+        </div>
+      ))}
+      {owned && !isMine && (
+        <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
+          <select className="gg-input" style={{ width: 70 }} value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+            {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n}점</option>)}
+          </select>
+          <input className="gg-input" placeholder="후기를 남겨주세요" value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
+          <button className="gg-btn" onClick={() => { onReview(mat.id, rating, reviewText); setReviewText(""); }}>등록</button>
+        </div>
+      )}
+
+      <h4 style={{ fontSize: 14, fontWeight: 800, margin: "18px 0 8px" }}>❓ 구매 전 질문 ({mat.questions.length})</h4>
+      {mat.questions.map((q) => (
+        <div key={q.id} style={{ padding: "8px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Q. {q.text} <span style={{ fontWeight: 400, color: COLORS.muted, fontSize: 11 }}>- {db.users[q.userId]?.nickname}</span></div>
+          {q.answer ? <div style={{ fontSize: 13, color: COLORS.primary, marginTop: 4 }}>A. {q.answer}</div> : isMine ? (
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+              <input className="gg-input" placeholder="답변 작성" value={answerDraft[q.id] || ""} onChange={(e) => setAnswerDraft({ ...answerDraft, [q.id]: e.target.value })} />
+              <button className="gg-btn" onClick={() => onAnswer(mat.id, q.id, answerDraft[q.id] || "")}>등록</button>
+            </div>
+          ) : <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>답변 대기중</div>}
+        </div>
+      ))}
+      {!isMine && (
+        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+          <input className="gg-input" placeholder="판매자에게 질문하기" value={ask} onChange={(e) => setAsk(e.target.value)} />
+          <button className="gg-btn" onClick={() => { onAsk(mat.id, ask); setAsk(""); }}><Send size={14} /></button>
+        </div>
+      )}
+      {isAdmin && !isMine && (
+        <button className="gg-btn-outline" style={{ marginTop: 16, color: COLORS.accent, width: "100%", justifyContent: "center" }} onClick={() => { if (confirm("관리자 권한으로 삭제할까요?")) onDelete(mat.id); }}>
+          <Shield size={14} /> 관리자 권한으로 삭제
+        </button>
+      )}
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------
+   업로드 모달
+--------------------------------------------------------------- */
+function UploadModal({ onClose, onSubmit }) {
+  const [form, setForm] = useState({ title: "", desc: "", subject: SUBJECTS[0], grade: GRADES[0], price: 0 });
+  const [file, setFile] = useState(null);
+  const [agree, setAgree] = useState(false);
+  return (
+    <Modal title="자료 올리기" onClose={onClose} width={480}>
+      <Field label="제목"><input className="gg-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+      <Field label="설명"><textarea className="gg-input" rows={3} value={form.desc} onChange={(e) => setForm({ ...form, desc: e.target.value })} /></Field>
+      <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ flex: 1 }}><Field label="과목">
+          <select className="gg-input" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}>{SUBJECTS.map((s) => <option key={s}>{s}</option>)}</select>
+        </Field></div>
+        <div style={{ flex: 1 }}><Field label="학년">
+          <select className="gg-input" value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })}>{GRADES.map((s) => <option key={s}>{s}</option>)}</select>
+        </Field></div>
+      </div>
+      <Field label="가격 (100P 단위, 무료는 0)">
+        <input className="gg-input" type="number" step={100} min={0} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+      </Field>
+      <Field label="파일 (PDF, JPG, PNG, JPEG)">
+        <input className="gg-input" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFile(e.target.files[0])} />
+      </Field>
+      <label style={{ display: "flex", gap: 8, fontSize: 12.5, color: COLORS.muted, alignItems: "flex-start", margin: "14px 0" }}>
+        <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ marginTop: 2 }} />
+        본인이 직접 제작했거나 공유 권한이 있는 자료만 업로드합니다. (학교 시험지, 학원 교재, 문제집, 저작권 침해 자료는 업로드할 수 없습니다.)
+      </label>
+      <button className="gg-btn" disabled={!agree} style={{ width: "100%", justifyContent: "center" }} onClick={() => onSubmit(form, file)}>등록하기</button>
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------
+   게시판 (자유/질문)
+--------------------------------------------------------------- */
+function BoardView({ title, cats, cat, setCat, posts, db, me, onOpen, onNew }) {
+  const sorted = [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 19, fontWeight: 900 }}>{title}</h2>
+        <button className="gg-btn" onClick={onNew}><PlusCircle size={15} /> 글쓰기</button>
+      </div>
+      {cats && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+          {cats.map((c) => <button key={c} className={`gg-tab ${cat === c ? "active" : ""}`} onClick={() => setCat(c)}>{c}</button>)}
+        </div>
+      )}
+      {sorted.length === 0 ? <EmptyState text="아직 게시글이 없어요." /> : (
+        <div className="gg-card" style={{ padding: 0, overflow: "hidden" }}>
+          {sorted.map((p, i) => (
+            <div key={p.id} onClick={() => onOpen(p)} style={{
+              padding: "14px 16px", borderBottom: i < sorted.length - 1 ? `1px solid ${COLORS.border}` : "none", cursor: "pointer",
+            }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {p.category && <Badge color={COLORS.bg}><span style={{ color: COLORS.primary }}>{p.category}</span></Badge>}
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{p.title}</span>
+              </div>
+              <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4, display: "flex", gap: 10 }}>
+                <span>{db.users[p.authorId]?.nickname || "탈퇴회원"}</span>
+                <span>{fmtDate(p.date)}</span>
+                <span>💬 {p.comments.length}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+function PostFormModal({ board, db, user, onClose, onSubmit }) {
+  const [form, setForm] = useState({ title: "", content: "", category: board === "free" ? FREE_CATS[0] : "" });
+  return (
+    <Modal title="글쓰기" onClose={onClose} width={480}>
+      {board === "free" && (
+        <Field label="카테고리">
+          <select className="gg-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>{FREE_CATS.map((c) => <option key={c}>{c}</option>)}</select>
+        </Field>
+      )}
+      <Field label="제목"><input className="gg-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+      <Field label="내용"><textarea className="gg-input" rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} /></Field>
+      <button className="gg-btn" style={{ width: "100%", justifyContent: "center" }} onClick={() => onSubmit(form)}>등록하기</button>
+    </Modal>
+  );
+}
+function PostModal({ post, db, me, isAdmin, onClose, onComment, onDelete, onReport }) {
+  const [comment, setComment] = useState("");
+  const authorLabel = db.users[post.authorId]?.nickname || "탈퇴회원";
+  const isMine = post.authorId === me;
+  return (
+    <Modal title={post.title} onClose={onClose} width={520}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12.5, color: COLORS.muted, marginBottom: 12 }}>
+        {post.category && <Badge color={COLORS.bg}><span style={{ color: COLORS.primary }}>{post.category}</span></Badge>}
+        <span>{authorLabel}</span><span>·</span><span>{fmtDate(post.date)}</span>
+      </div>
+      <p style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{post.content}</p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {(isMine || isAdmin) && (
+          <button className="gg-btn-outline" style={{ color: COLORS.accent }} onClick={() => { if (confirm("삭제할까요?")) onDelete(post.id); }}><Trash2 size={13} /> 삭제</button>
+        )}
+        {!isMine && <button className="gg-btn-outline" onClick={onReport}><Flag size={13} /> 신고</button>}
+      </div>
+      <h4 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 8px" }}>댓글 {post.comments.length}</h4>
+      {post.comments.map((c) => {
+        const cLabel = db.users[c.authorId]?.nickname || "탈퇴회원";
+        return (
+          <div key={c.id} style={{ padding: "8px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700 }}>{cLabel}</div>
+            <div style={{ fontSize: 13, marginTop: 2 }}>{c.content}</div>
+          </div>
+        );
+      })}
+      <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+        <input className="gg-input" placeholder="댓글을 입력하세요" value={comment} onChange={(e) => setComment(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && comment.trim()) { onComment(post.id, comment); setComment(""); } }} />
+        <button className="gg-btn" onClick={() => { if (comment.trim()) { onComment(post.id, comment); setComment(""); } }}><Send size={14} /></button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------
+   공지사항
+--------------------------------------------------------------- */
+function NoticesView({ db }) {
+  const notices = [...db.notices].sort((a, b) => new Date(b.date) - new Date(a.date));
+  return (
+    <div>
+      <h2 style={{ fontSize: 19, fontWeight: 900, marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Megaphone size={20} color={COLORS.primary} /> 공지사항</h2>
+      {notices.length === 0 ? <EmptyState text="등록된 공지가 없어요." /> : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {notices.map((n) => (
+            <div key={n.id} className="gg-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                <div style={{ fontWeight: 800, fontSize: 14.5 }}>{n.title}</div>
+                <span style={{ fontSize: 11.5, color: COLORS.muted, whiteSpace: "nowrap" }}>{n.date}</span>
+              </div>
+              <div style={{ fontSize: 13.5, color: COLORS.text, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{n.content}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   포인트 기록
+--------------------------------------------------------------- */
+function PointsView({ db, user }) {
+  const history = db.pointHistory.filter((h) => h.userId === user.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+  return (
+    <div>
+      <h2 style={{ fontSize: 19, fontWeight: 900, marginTop: 0 }}>포인트 기록</h2>
+      <div className="gg-card" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, #6C7BFF)`, color: "#fff", border: "none", marginBottom: 16 }}>
+        <div style={{ fontSize: 13, opacity: 0.9, fontWeight: 700 }}>현재 보유 포인트</div>
+        <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{user.points.toLocaleString()}P</div>
+      </div>
+      {history.length === 0 ? <EmptyState text="포인트 내역이 없어요." /> : (
+        <div className="gg-card" style={{ padding: 0, overflow: "hidden" }}>
+          {history.map((h, i) => (
+            <div key={h.id} style={{ padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: i < history.length - 1 ? `1px solid ${COLORS.border}` : "none" }}>
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{h.desc}</div>
+                <div style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>{fmtDate(h.date)}</div>
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: h.amount >= 0 ? COLORS.secondary : COLORS.accent }}>
+                {h.amount >= 0 ? "+" : ""}{h.amount.toLocaleString()}P
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   마이페이지
+--------------------------------------------------------------- */
+function MyPage({ db, me, user, onOpenMat, onOpenPost, onDeleteMat, onAttend }) {
+  const [tab, setTab] = useState("profile");
+  const myMaterials = db.materials.filter((m) => m.sellerId === me);
+  const purchased = db.materials.filter((m) => m.purchasedBy.includes(me));
+  const favorites = db.materials.filter((m) => m.favoritedBy.includes(me));
+  const following = user.following.map((id) => db.users[id]).filter(Boolean);
+  const myPosts = db.posts.filter((p) => p.authorId === me);
+  const myComments = [];
+  db.posts.forEach((p) => p.comments.forEach((c) => { if (c.authorId === me) myComments.push({ ...c, postTitle: p.title, post: p }); }));
+  const tier = sellerTier(user.sellerStats.total);
+  const t = todayStr();
+  const salesToday = user.sellerStats.lastResetDay === t ? user.sellerStats.today : 0;
+
+  const tabs = [
+    ["profile", "프로필"], ["sales", "판매자료·통계"], ["purchases", "구매자료"],
+    ["favorites", "즐겨찾기"], ["following", "팔로우"], ["myposts", "내가 쓴 글"], ["mycomments", "내가 쓴 댓글"], ["attendance", "출석달력"],
+  ];
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 19, fontWeight: 900, marginTop: 0 }}>마이페이지</h2>
+      <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+        {tabs.map(([k, l]) => <button key={k} className={`gg-tab ${tab === k ? "active" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
+      </div>
+
+      {tab === "profile" && (
+        <div className="gg-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: COLORS.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 22 }}>{user.nickname[0]}</div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 17, display: "flex", alignItems: "center", gap: 6 }}>{user.nickname} <Badge color={tier.color}>{tier.name}</Badge></div>
+              <div style={{ fontSize: 12.5, color: COLORS.muted }}>{user.school} · {user.grade} {user.cls}반</div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13 }}>
+            <div><span style={{ color: COLORS.muted }}>이름</span><div style={{ fontWeight: 700 }}>{user.name}</div></div>
+            <div><span style={{ color: COLORS.muted }}>아이디</span><div style={{ fontWeight: 700 }}>{user.id}</div></div>
+            <div><span style={{ color: COLORS.muted }}>가입일</span><div style={{ fontWeight: 700 }}>{user.joined}</div></div>
+            <div><span style={{ color: COLORS.muted }}>보유 포인트</span><div style={{ fontWeight: 700, color: COLORS.primary }}>{user.points.toLocaleString()}P</div></div>
+          </div>
+        </div>
+      )}
+
+      {tab === "sales" && (
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 18 }}>
+            {[["오늘 판매", salesToday], ["이번 달", user.sellerStats.month], ["총 판매", user.sellerStats.total], ["총 획득P", user.sellerStats.totalEarned]].map(([l, v]) => (
+              <div key={l} className="gg-card" style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 11.5, color: COLORS.muted, fontWeight: 700 }}>{l}</div>
+                <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{v.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+          {myMaterials.length === 0 ? <EmptyState text="등록한 자료가 없어요." /> : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12 }}>
+              {myMaterials.map((m) => (
+                <div key={m.id} className="gg-card">
+                  <div onClick={() => onOpenMat(m)} style={{ cursor: "pointer", fontWeight: 800, fontSize: 13.5, marginBottom: 6 }}>{m.title}</div>
+                  <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 8 }}>구매 {m.purchasedBy.length}건 · <PointTag price={m.price} /></div>
+                  <button className="gg-btn-outline" style={{ width: "100%", justifyContent: "center", color: COLORS.accent, fontSize: 12 }} onClick={() => { if (confirm("삭제할까요?")) onDeleteMat(m.id); }}><Trash2 size={12} /> 삭제</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "purchases" && (purchased.length === 0 ? <EmptyState text="구매한 자료가 없어요." /> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12 }}>{purchased.map((m) => <MaterialCard key={m.id} m={m} db={db} onClick={() => onOpenMat(m)} />)}</div>
+      ))}
+      {tab === "favorites" && (favorites.length === 0 ? <EmptyState text="즐겨찾기한 자료가 없어요." /> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12 }}>{favorites.map((m) => <MaterialCard key={m.id} m={m} db={db} onClick={() => onOpenMat(m)} />)}</div>
+      ))}
+      {tab === "following" && (following.length === 0 ? <EmptyState text="팔로우한 판매자가 없어요." /> : (
+        <div className="gg-card" style={{ padding: 0 }}>
+          {following.map((s, i) => (
+            <div key={s.id} style={{ padding: "12px 16px", borderBottom: i < following.length - 1 ? `1px solid ${COLORS.border}` : "none", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontWeight: 700, fontSize: 13.5 }}>{s.nickname}</span>
+              <Badge color={sellerTier(s.sellerStats.total).color}>{sellerTier(s.sellerStats.total).name}</Badge>
+            </div>
+          ))}
+        </div>
+      ))}
+      {tab === "myposts" && (myPosts.length === 0 ? <EmptyState text="작성한 글이 없어요." /> : (
+        <div className="gg-card" style={{ padding: 0 }}>
+          {myPosts.map((p, i) => (
+            <div key={p.id} onClick={() => onOpenPost(p)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < myPosts.length - 1 ? `1px solid ${COLORS.border}` : "none" }}>
+              <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.title}</div>
+              <div style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 3 }}>{p.board === "free" ? "자유게시판" : "질문게시판"} · {fmtDate(p.date)}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+      {tab === "mycomments" && (myComments.length === 0 ? <EmptyState text="작성한 댓글이 없어요." /> : (
+        <div className="gg-card" style={{ padding: 0 }}>
+          {myComments.map((c, i) => (
+            <div key={c.id} onClick={() => onOpenPost(c.post)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < myComments.length - 1 ? `1px solid ${COLORS.border}` : "none" }}>
+              <div style={{ fontSize: 13 }}>{c.content}</div>
+              <div style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 3 }}>{c.postTitle}에 남긴 댓글 · {fmtDate(c.date)}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+      {tab === "attendance" && <AttendanceCalendar user={user} onAttend={onAttend} />}
+    </div>
+  );
+}
+function AttendanceCalendar({ user, onAttend }) {
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const first = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const checkedToday = user.attendance.dates.includes(todayStr());
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push(null);
+  for (let d = 1; d <= days; d++) cells.push(d);
+  return (
+    <div className="gg-card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ fontWeight: 800 }}>{year}년 {month + 1}월 · 🔥 연속 {user.attendance.streak}일</div>
+        <button className="gg-btn gg-btn-secondary" disabled={checkedToday} onClick={onAttend}>{checkedToday ? "출석완료" : "출석 +20P"}</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, fontSize: 12, textAlign: "center", color: COLORS.muted, marginBottom: 6 }}>
+        {["일", "월", "화", "수", "목", "금", "토"].map((d) => <div key={d}>{d}</div>)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6 }}>
+        {cells.map((d, i) => {
+          const dateStr = d ? `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}` : null;
+          const checked = dateStr && user.attendance.dates.includes(dateStr);
+          return (
+            <div key={i} style={{
+              aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+              background: checked ? COLORS.secondary : "transparent", color: checked ? "#fff" : d ? COLORS.text : "transparent",
+            }}>{d || ""}</div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   관리자 페이지
+--------------------------------------------------------------- */
+function AdminView({ db, onBan, onGrant, onAddNotice, onDeleteNotice, onDeleteMat, onDeletePost, onResolveReport }) {
+  const [tab, setTab] = useState("users");
+  const [grantAmt, setGrantAmt] = useState({});
+  const [grantReason, setGrantReason] = useState({});
+  const [noticeForm, setNoticeForm] = useState({ title: "", content: "" });
+  const users = Object.values(db.users).filter((u) => u.role !== "admin");
+  const tabs = [["users", "회원관리"], ["materials", "자료관리"], ["posts", "게시글관리"], ["notices", "공지관리"], ["reports", `신고관리 (${db.reports.filter((r) => r.status === "대기").length})`]];
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 19, fontWeight: 900, marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Shield size={20} color={COLORS.primary} /> 관리자 페이지</h2>
+      <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+        {tabs.map(([k, l]) => <button key={k} className={`gg-tab ${tab === k ? "active" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
+      </div>
+
+      {tab === "users" && (
+        <div className="gg-card" style={{ padding: 0, overflow: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead><tr style={{ background: COLORS.bg, textAlign: "left" }}>
+              {["닉네임", "학교/학년", "포인트", "상태", "포인트 지급", "정지"].map((h) => <th key={h} style={{ padding: "10px 12px", fontWeight: 800 }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} style={{ borderTop: `1px solid ${COLORS.border}` }}>
+                  <td style={{ padding: "10px 12px", fontWeight: 700 }}>{u.nickname} <span style={{ color: COLORS.muted, fontWeight: 400 }}>({u.name})</span></td>
+                  <td style={{ padding: "10px 12px" }}>{u.school} {u.grade}</td>
+                  <td style={{ padding: "10px 12px" }}>{u.points.toLocaleString()}P</td>
+                  <td style={{ padding: "10px 12px" }}>{u.banned ? <Badge color={COLORS.accent}>정지됨</Badge> : <Badge color={COLORS.secondary}>정상</Badge>}</td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <input className="gg-input" style={{ width: 70, padding: "6px 8px" }} placeholder="P" value={grantAmt[u.id] || ""} onChange={(e) => setGrantAmt({ ...grantAmt, [u.id]: e.target.value })} />
+                      <button className="gg-btn" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => { onGrant(u.id, grantAmt[u.id], grantReason[u.id]); setGrantAmt({ ...grantAmt, [u.id]: "" }); }}>지급</button>
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <button className="gg-btn-outline" style={{ fontSize: 12, color: u.banned ? COLORS.secondary : COLORS.accent }} onClick={() => onBan(u.id, !u.banned)}>{u.banned ? "정지 해제" : "계정 정지"}</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab === "materials" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 12 }}>
+          {db.materials.map((m) => (
+            <div key={m.id} className="gg-card">
+              <div style={{ fontWeight: 800, fontSize: 13.5 }}>{m.title}</div>
+              <div style={{ fontSize: 12, color: COLORS.muted, margin: "6px 0" }}>{db.users[m.sellerId]?.nickname} · 신고 {m.reports?.length || 0}건</div>
+              <button className="gg-btn-outline" style={{ width: "100%", justifyContent: "center", color: COLORS.accent, fontSize: 12 }} onClick={() => { if (confirm("삭제할까요?")) onDeleteMat(m.id); }}><Trash2 size={12} /> 삭제</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "posts" && (
+        <div className="gg-card" style={{ padding: 0 }}>
+          {db.posts.map((p, i) => (
+            <div key={p.id} style={{ padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: i < db.posts.length - 1 ? `1px solid ${COLORS.border}` : "none" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.title}</div>
+                <div style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 3 }}>{p.board} · {db.users[p.authorId]?.nickname}</div>
+              </div>
+              <button className="gg-btn-outline" style={{ fontSize: 12, color: COLORS.accent }} onClick={() => { if (confirm("삭제할까요?")) onDeletePost(p.id); }}><Trash2 size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "notices" && (
+        <div>
+          <div className="gg-card" style={{ marginBottom: 16 }}>
+            <Field label="공지 제목"><input className="gg-input" value={noticeForm.title} onChange={(e) => setNoticeForm({ ...noticeForm, title: e.target.value })} /></Field>
+            <Field label="공지 내용"><textarea className="gg-input" rows={2} value={noticeForm.content} onChange={(e) => setNoticeForm({ ...noticeForm, content: e.target.value })} /></Field>
+            <button className="gg-btn" onClick={() => { onAddNotice(noticeForm.title, noticeForm.content); setNoticeForm({ title: "", content: "" }); }}>공지 등록</button>
+          </div>
+          {db.notices.map((n) => (
+            <div key={n.id} className="gg-card" style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div><div style={{ fontWeight: 800, fontSize: 13.5 }}>{n.title}</div><div style={{ fontSize: 12.5, color: COLORS.muted, marginTop: 4 }}>{n.content}</div></div>
+              <button className="gg-icon-btn" onClick={() => onDeleteNotice(n.id)}><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "reports" && (
+        <div className="gg-card" style={{ padding: 0 }}>
+          {db.reports.length === 0 ? <div style={{ padding: 20 }}><EmptyState text="신고 내역이 없어요." /></div> : db.reports.slice().reverse().map((r, i) => (
+            <div key={r.id} style={{ padding: "12px 16px", borderBottom: i < db.reports.length - 1 ? `1px solid ${COLORS.border}` : "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>{r.type} 신고 · {r.reason}</div>
+                <div style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 3 }}>신고자: {db.users[r.reporterId]?.nickname} · {fmtDate(r.date)}</div>
+              </div>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <Badge color={r.status === "대기" ? COLORS.accent : COLORS.secondary}>{r.status}</Badge>
+                {r.status === "대기" && (
+                  <>
+                    <button className="gg-btn-outline" style={{ fontSize: 11 }} onClick={() => onResolveReport(r.id, "처리완료")}>처리완료</button>
+                    <button className="gg-btn-outline" style={{ fontSize: 11 }} onClick={() => onResolveReport(r.id, "반려")}>반려</button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
